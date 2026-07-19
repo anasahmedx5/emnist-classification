@@ -1,6 +1,6 @@
 # Handwritten Character Tracing and Recognition Using Computer Vision
 
-![Tracing Canvas Example](assets/tracing_preview.png)
+![Tracing Canvas Example](assets/images.jpg)
 
 ---
 
