@@ -4,152 +4,198 @@
 
 ---
 
-## **Project Overview**
+# Project Overview
 
-This project implements an **interactive handwritten character tracing and evaluation engine** using Computer Vision (CV) and Deep Learning. The system analyzes raw sketch canvas strokes, classifies the character intent, evaluates geometric alignment precision against standard templates, and returns target feedback.
+This project is an interactive handwritten character tracing and recognition system built using **Computer Vision** and **Deep Learning**. It allows users to trace characters on a digital canvas, recognizes the drawn character using a Convolutional Neural Network (CNN), evaluates how closely the drawing matches the target character, and provides instant visual feedback through a **Streamlit** web application.
 
-The system utilizes a hybrid pipeline:
-1. A custom **Convolutional Neural Network (CNN)** trained on the **EMNIST Balanced dataset** to identify the structural intent of the drawing.
-2. A **Classical Geometry Engine** that uses pixel-wise matrix evaluation to calculate precise accuracy scores and isolate exact coordinates where drawing mistakes occurred.
+The project combines deep learning with classical image processing techniques to deliver accurate character recognition and detailed tracing evaluation.
 
-The system can recognize and score 47 distinct balanced character classes, including:
-- Digits (0–9)
-- Uppercase Letters (A–Z)
-- Distinct Lowercase Letters (a, b, d, e, f, g, h, n, q, r, t)
+The system consists of two main components:
 
-This project demonstrates an end-to-end machine learning and computer vision workflow, covering automated preprocessing, multi-model comparative training, metrics evaluation, and geometric error mapping.
+- **CNN Classifier:** Identifies the character drawn by the user.
+- **Geometry Evaluation Engine:** Measures how accurately the traced character matches the expected template and highlights drawing mistakes.
 
----
+The model supports recognition of **47 handwritten character classes**, including:
 
-## **Technologies and Libraries**
-
-- **Python 3.10+**
-- **TensorFlow / Keras** – Deep learning framework and inference engine
-- **OpenCV (opencv-python)** – Advanced image transformation and classical matrix operations
-- **NumPy** – High-performance matrix array computations
-- **Pandas** – Dataframe analysis and CSV manipulation
-- **Matplotlib & Seaborn** – Loss curves, accuracy charts, and confusion matrix rendering
-- **Scikit-learn** – Core evaluation metrics (Macro Precision, Recall, F1-Score)
+- Digits: (0–9)
+- Uppercase letters: (A–Z)
+- Lowercase letters: (a, b, d, e, f, g, h, n, q, r, t)
 
 ---
 
-## **Dataset**
+# Technologies Used
 
-The project uses the **EMNIST (Extended MNIST) Balanced Dataset**, an industry benchmark for handwritten character categorization.
+- Python 3.10+
+- TensorFlow / Keras
+- OpenCV
+- NumPy
+- Pandas
+- Streamlit
+- streamlit-drawable-canvas
+- Matplotlib
+- Seaborn
+- Scikit-learn
 
-Dataset statistics:
-- **131,600 total structural images**
-- **47 perfectly balanced classes** (Digits + Alphabets combined)
-- **2,800 uniform samples per class**
-- **28 × 28 pixel dimensions** per image sample
+---
 
-Dataset Link:
+# Dataset
+
+The project uses the **EMNIST Balanced Dataset**, a benchmark dataset for handwritten character recognition.
+
+### Dataset Statistics
+
+- **131,600 total images**
+- **47 balanced character classes**
+- **2,800 images per class**
+- **28 × 28 grayscale images**
+
+Dataset:
+
 https://www.kaggle.com/datasets/crawford/emnist
 
 ---
 
-## **Image Preprocessing**
+# Image Preprocessing
 
-Raw stroke drawings captured from a user interface require normalization before feeding into the evaluation models to match historical training constraints.
+Before prediction, every drawing goes through several preprocessing steps to match the format used during training.
 
-The image processing unit executes these sequential steps:
+1. Convert the drawing to grayscale.
+2. Invert the image so characters become white on a black background.
+3. Apply Otsu thresholding to remove anti-aliasing artifacts.
+4. Detect the character bounding box.
+5. Crop the drawing.
+6. Resize while preserving the aspect ratio.
+7. Normalize pixel values to the range **0–1**.
 
-1. **Grayscale Conversion:** Strips out auxiliary RGB profile channels to reduce footprint.
-2. **Inversion:** Flips white canvas backgrounds to black, transforming stroke marks into high-intensity white pixels.
-3. **Otsu's Binarization:** Applies automated thresholding to erase gray anti-aliasing brush shadows.
-4. **Bounding Box Isolation:** Crops tightly along extreme stroke edge coordinates to isolate the target shape.
-5. **Resizing:** Scales the extracted box area down to uniform dimensions while maintaining aspect ratios.
-
-### **Inference Input Parameters**
+### Model Input
 
 | Parameter | Value |
-|------------|-------|
-| Target Matrix Dimensions | 28 × 28 Pixels |
-| Color Channels | 1 (Grayscale) |
-| Active Value Scale | Normalized [0.0 - 1.0] |
-| Input Array Structure | 1 × 28 × 28 × 1 |
+|-----------|------|
+| Image Size | 28 × 28 |
+| Channels | 1 |
+| Pixel Range | 0.0 – 1.0 |
+| Input Shape | (1, 28, 28, 1) |
 
 ---
 
-## **Dataset Split**
+# Dataset Split
 
-The dataset is divided cleanly to safeguard against data leakage and validate real-world reliability:
+The dataset is divided into independent training, validation, and testing sets.
 
-- **Training Subsample:** 95,880 structural images (85% of training file allocation)
-- **Validation Subsample:** 16,920 structural images (15% internal evaluation split)
-- **Testing Set:** 18,800 separate standalone images (Complete official EMNIST Test file)
-
----
-
-## **Model Architecture Selection**
-
-The research environment evaluates and compares three unique network architectures to select the optimal production model:
-
-1. **Shallow CNN Baseline:** A lightweight 2-layer network used to establish baseline performance floors.
-2. **Deep Regularized CNN:** An optimized, deeper network containing Batch Normalization and Dropout steps to maximize stability and prevent overfitting.
-3. **Residual CNN:** A high-efficiency network using shortcut skip-connections to retain fine spatial edge features across pooling filters.
-
-### **Why Deep Regularized CNN?**
-- Batch Normalization stabilizes internal covariate shifts during training acceleration.
-- Layer dropouts prevent dependency on single pixel regions, forcing the model to look at the entire character profile.
-- High structural flexibility allows it to adapt to highly varied, erratic hand movements and shaky lines.
+| Dataset | Images |
+|---------|-------:|
+| Training | 95,880 |
+| Validation | 16,920 |
+| Testing | 18,800 |
 
 ---
 
-## **Training Details**
+# Model Comparison
 
-- **Loss Metric:** Sparse Categorical Crossentropy
-- **Optimizer:** Adam
-- **Base Learning Rate:** 1e-3
-- **Batch Processing Size:** 128
-- **Evaluation Lifecycles:** 20 Epochs
+Three CNN architectures were developed and evaluated.
 
-### **Inference Validation Features**
-- Dynamic validation split metrics tracking
-- Real-time performance evaluation logs
-- Standardized binary model serialization checkpointing
+## 1. Shallow CNN
 
----
+A lightweight baseline network used for comparison.
 
-## **Performance Metrics**
+## 2. Deep Regularized CNN
 
-### **Model Architecture Comparison**
+A deeper architecture incorporating:
 
-| Architecture Profile | Test Accuracy | Macro Precision | Macro F1-Score |
-|----------------------|---------------|-----------------|----------------|
-| Shallow Baseline     | 82.1%         | 0.814           | 0.817          |
-| Deep Regularized CNN | 88.4%         | 0.881           | 0.882          |
-| Residual CNN         | 86.9%         | 0.865           | 0.866          |
+- Batch Normalization
+- Dropout
+- Multiple convolutional layers
 
-### **Evaluation Verification**
-Comprehensive architectural sign-off requires parsing via:
-- Class-by-class Precision, Recall, and F1 calculations.
-- Macro-averaged metric overviews across all 47 target categories.
-- Generated heatmaps via a full Confusion Matrix to pinpoint specific character confusion points (e.g., distinguishing '0' vs 'O' or '1' vs 'l').
+This architecture achieved the highest performance and was selected as the final production model.
+
+## 3. Residual CNN
+
+A residual network using shortcut connections to preserve spatial information across deeper layers.
 
 ---
 
-## **Saved Model Engine**
+# Training Configuration
 
-The optimal, highest-performing architecture model instance is automatically bundled, serialized, and exported upon validation completion:
+| Parameter | Value |
+|-----------|------|
+| Loss Function | Sparse Categorical Crossentropy |
+| Optimizer | Adam |
+| Learning Rate | 0.001 |
+| Batch Size | 128 |
+| Epochs | 20 |
 
+---
+
+# Model Performance
+
+| Model | Test Accuracy | Macro Precision | Macro F1 Score |
+|------|---------------:|----------------:|---------------:|
+| Shallow CNN | 82.1% | 0.814 | 0.817 |
+| Deep Regularized CNN | **88.4%** | **0.881** | **0.882** |
+| Residual CNN | 86.9% | 0.865 | 0.866 |
+
+The final model was further evaluated using:
+
+- Precision
+- Recall
+- F1-Score
+- Confusion Matrix
+- Per-class performance analysis
+
+---
+
+# Streamlit Application
+
+The project includes an interactive Streamlit application for real-time tracing evaluation.
+
+### Features
+
+- Interactive drawing canvas
+- Character selection
+- Real-time handwriting recognition
+- Confidence prediction
+- IoU-based tracing score
+- Visual error highlighting
+- Kid-friendly interface
+
+Run the application:
+
+```bash
+streamlit run app.py
+```
+
+---
+
+# Saved Model
+
+The best-performing model is exported after training as:
+
+```
 best_tracing_model.keras
+```
 
-
-This self-contained structure can be integrated directly into production API layers for real-time inference without requiring dependency adjustments.
-
----
-
-## **Applications**
-
-This tracing evaluation technology can be applied to:
-- Interactive early childhood alphabet and digit learning applications.
-- Accessibility tools for individuals practicing fine motor skills.
-- Gamified handwriting and calligraphy correction systems.
-- Automated document signature consistency verification engines.
+The Streamlit application loads this model for real-time predictions.
 
 ---
 
-## **Results Summary**
+# Applications
 
-This project delivers a complete deep learning and computer vision solution for stroke tracing evaluation. By pa
+This project can be used in a variety of educational and computer vision applications, including:
+
+- Handwriting learning platforms
+- Character tracing games
+- Educational applications for children
+- Fine motor skill training
+- Digital handwriting assessment
+- Calligraphy practice systems
+- Signature consistency verification
+
+---
+
+# Results
+
+This project demonstrates how deep learning and classical computer vision techniques can be combined to build an intelligent handwriting tracing system.
+
+The **Deep Regularized CNN** achieved **88.4% test accuracy** on the **47-class EMNIST Balanced Dataset**, while the geometry evaluation engine provides localized visual feedback to help users improve their handwriting accuracy.
+
+The result is a complete interactive tracing application capable of recognizing handwritten characters, measuring tracing quality, and delivering immediate educational feedback in a user-friendly interface.
